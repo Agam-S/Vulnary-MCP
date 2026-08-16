@@ -28,6 +28,33 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "check_package",
+  {
+    title: "Check Package",
+    description: "Query OSV.dev for known vulnerabilities in a specific package + version",
+    inputSchema: {
+      package_name: z.string(),
+      package_version: z.string(),
+    },
+  },
+  async ({ package_name, package_version }) => {
+    const response = await fetch(osvApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        package: { name: package_name },
+        version: package_version,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch package data: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+  }
+);
+
 
 async function main() {
   const transport = new StdioServerTransport();

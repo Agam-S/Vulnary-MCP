@@ -15,7 +15,7 @@ Combines [OSV.dev](https://osv.dev) (open-source package vulnerabilities) and [N
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/Agam-S/Vulnary-MCP
 cd Vulnary-MCP
 npm install
 npm run build

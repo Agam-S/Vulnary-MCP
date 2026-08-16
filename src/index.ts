@@ -55,6 +55,40 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "scan_dependencies",
+  {
+    title: "Scan Dependencies",
+    description: "Batch-check a list of dependencies against OSV.dev",
+    inputSchema: {
+      dependencies: z.array(
+        z.object({
+          name: z.string(),
+          version: z.string(),
+        })
+      ),
+    },
+  },
+  async ({ dependencies }) => {
+    const results = [];
+    for (const dep of dependencies) {
+      const response = await fetch(osvApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          package: { name: dep.name },
+          version: dep.version,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch package data for ${dep.name}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      results.push({ package: dep, vulnerabilities: data });
+    }
+    return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+  }
+);
 
 async function main() {
   const transport = new StdioServerTransport();

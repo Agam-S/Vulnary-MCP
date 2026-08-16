@@ -1,0 +1,22 @@
+{
+  "name": "vulnary",
+  "version": "1.0.0",
+  "description": "vulnary is a mcp server that searches for cve's and vulnerabilities",
+  "license": "ISC",
+  "author": "Agam-S",
+  "type": "commonjs",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}

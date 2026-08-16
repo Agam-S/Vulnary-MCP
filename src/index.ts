@@ -4,13 +4,30 @@ import { z } from "zod";
 
 
 const osvApiUrl = "https://api.osv.dev/v1/query";
+const osvBatchApiUrl = "https://api.osv.dev/v1/querybatch";
 const nvdApiUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0";
 
 const server = new McpServer({
   name: "Vulnary MCP",
-  version: "1.0.0",
+  version: "1.1.0",
 });
 
+// Helper
+const ecosystemEnum = z
+  .enum(["npm", "PyPI", "crates.io", "Go", "Maven", "RubyGems", "NuGet"])
+  .describe("Package ecosystem OSV.dev should search in");
+
+  
+interface OsvVuln {
+  id: string;
+  summary?: string;
+  details?: string;
+  severity?: { type: string; score: string }[];
+  affected?: { ranges?: { events?: { fixed?: string }[] }[] }[];
+  aliases?: string[];
+}
+
+// MCP Functions
 server.registerTool(
   "lookup_cve",
   {
@@ -36,6 +53,7 @@ server.registerTool(
     inputSchema: {
       package_name: z.string(),
       package_version: z.string(),
+      ecosystem: ecosystemEnum,
     },
   },
   async ({ package_name, package_version }) => {

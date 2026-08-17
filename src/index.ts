@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-
+// API URLs
 const osvApiUrl = "https://api.osv.dev/v1/query";
 const osvBatchApiUrl = "https://api.osv.dev/v1/querybatch";
 const nvdApiUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0";
@@ -12,7 +12,7 @@ const server = new McpServer({
   version: "1.1.0",
 });
 
-// Helper
+// Helpers
 const ecosystemEnum = z
   .enum(["npm", "PyPI", "crates.io", "Go", "Maven", "RubyGems", "NuGet"])
   .describe("Package ecosystem OSV.dev should search in");
@@ -41,7 +41,27 @@ server.registerTool(
       throw new Error(`Failed to fetch CVE data: ${response.statusText}`);
     }
     const data = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    const vuln = data.vulnerabilities?.[0]?.cve;
+    if (!vuln) {
+      return { content: [{ type: "text", text: `No data found for ${cve_id}` }] };
+    }
+    const summary = {
+      id: vuln.id,
+      description: vuln.descriptions?.find((d: any) => d.lang === "en")?.value,
+      severity:
+        vuln.metrics?.cvssMetricV31?.[0]?.cvssData?.baseSeverity ??
+        vuln.metrics?.cvssMetricV30?.[0]?.cvssData?.baseSeverity ??
+        vuln.metrics?.cvssMetricV2?.[0]?.baseSeverity ??
+        "unknown",
+      score:
+        vuln.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore ??
+        vuln.metrics?.cvssMetricV30?.[0]?.cvssData?.baseScore ??
+        vuln.metrics?.cvssMetricV2?.[0]?.cvssData?.baseScore ??
+        null,
+      published: vuln.published,
+      references: (vuln.references ?? []).slice(0, 5).map((r: any) => r.url),
+    };
+    return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
   }
 );
 

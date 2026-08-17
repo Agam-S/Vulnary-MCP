@@ -126,8 +126,9 @@ server.registerTool(
   "scan_dependencies",
   {
     title: "Scan Dependencies",
-    description: "Batch-check a list of dependencies against OSV.dev",
+    description: "Batch-check a list of named dependencies (with versions) against OSV.dev.",
     inputSchema: {
+      ecosystem: ecosystemEnum,
       dependencies: z.array(
         z.object({
           name: z.string(),
@@ -136,24 +137,39 @@ server.registerTool(
       ),
     },
   },
-  async ({ dependencies }) => {
-    const results = [];
-    for (const dep of dependencies) {
-      const response = await fetch(osvApiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          package: { name: dep.name },
+  async ({ ecosystem, dependencies }) => {
+    const response = await fetch(osvBatchApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        queries: dependencies.map((dep) => ({
           version: dep.version,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch package data for ${dep.name}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      results.push({ package: dep, vulnerabilities: data });
+          package: { name: dep.name, ecosystem },
+        })),
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`OSV batch query failed: ${response.statusText}`);
     }
-    return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+    const data = await response.json();
+    const results = dependencies.map((dep, i) => ({
+      package: dep.name,
+      version: dep.version,
+      ...summarizeOsvVulns(data.results?.[i]?.vulns),
+    }));
+    const vulnerableCount = results.filter((r) => r.vulnerable).length;
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            { scanned: results.length, vulnerable_packages: vulnerableCount, results },
+            null,
+            2
+          ),
+        },
+      ],
+    };
   }
 );
 

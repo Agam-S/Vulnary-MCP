@@ -27,7 +27,33 @@ interface OsvVuln {
   aliases?: string[];
 }
 
+// Summarize OSV vulnerabilities
+function summarizeOsvVulns(vulns: OsvVuln[] | undefined) {
+  if (!vulns || vulns.length === 0) {
+    return { vulnerable: false, count: 0, vulnerabilities: [] };
+  }
+  const summarized = vulns.map((v) => {
+    const fixedVersions = new Set<string>();
+    for (const affected of v.affected ?? []) {
+      for (const range of affected.ranges ?? []) {
+        for (const event of range.events ?? []) {
+          if (event.fixed) fixedVersions.add(event.fixed);
+        }
+      }
+    }
+    return {
+      id: v.id,
+      aliases: v.aliases ?? [],
+      summary: v.summary ?? v.details?.slice(0, 200) ?? "No summary available",
+      severity: v.severity?.[0]?.score ?? "unknown",
+      fixed_in: [...fixedVersions],
+    };
+  });
+  return { vulnerable: true, count: summarized.length, vulnerabilities: summarized };
+}
+
 // MCP Functions
+// NVD CVE Lookup
 server.registerTool(
   "lookup_cve",
   {
@@ -65,23 +91,24 @@ server.registerTool(
   }
 );
 
+// Check package vulnerabilities using OSV.dev
 server.registerTool(
   "check_package",
   {
     title: "Check Package",
-    description: "Query OSV.dev for known vulnerabilities in a specific package + version",
+    description: "Query OSV.dev for known vulnerabilities in a specific package + version. Requires the ecosystem (npm, PyPI, etc.) to disambiguate packages with the same name across registries.",
     inputSchema: {
       package_name: z.string(),
       package_version: z.string(),
       ecosystem: ecosystemEnum,
     },
   },
-  async ({ package_name, package_version }) => {
+  async ({ package_name, package_version, ecosystem }) => {
     const response = await fetch(osvApiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        package: { name: package_name },
+        package: { name: package_name, ecosystem },
         version: package_version,
       }),
     });
@@ -89,10 +116,12 @@ server.registerTool(
       throw new Error(`Failed to fetch package data: ${response.statusText}`);
     }
     const data = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    const summary = summarizeOsvVulns(data.vulns);
+    return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
   }
 );
 
+// Batch scan dependencies using OSV.dev
 server.registerTool(
   "scan_dependencies",
   {

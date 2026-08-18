@@ -45,6 +45,7 @@ Restart the client and the tools below should appear.
 | `lookup_cve` | Fetch raw CVE data from NVD by CVE ID |
 | `check_package` | Query OSV.dev for known vulnerabilities in a specific package + version |
 | `scan_dependencies` | Batch-check a list of `{ name, version }` dependencies against OSV.dev |
+| `scan_dependencies_file` | Batch-check a `package-lock.json` or `requirements.txt` file for known vulnerabilities |
 
 
 ## License

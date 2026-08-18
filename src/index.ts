@@ -173,6 +173,89 @@ server.registerTool(
   }
 );
 
+// Scan Dependencies By File
+server.registerTool(
+  "scan_dependency_file",
+  {
+    title: "Scan Dependency File",
+    description:
+      "Parse the raw contents of a package.json or requirements.txt file and check every listed dependency against OSV.dev.",
+    inputSchema: {
+      file_type: z.enum(["package.json", "requirements.txt"]),
+      file_contents: z.string(),
+    },
+  },
+  async ({ file_type, file_contents }) => {
+    let dependencies: { name: string; version: string }[] = [];
+    let ecosystem: string;
+
+    if (file_type === "package.json") {
+      ecosystem = "npm";
+      const parsed = JSON.parse(file_contents);
+      const deps = { ...parsed.dependencies, ...parsed.devDependencies };
+      dependencies = Object.entries(deps).map(([name, version]) => ({
+        name,
+        version: String(version).replace(/^[\^~]/, ""),
+      }));
+    } else {
+      ecosystem = "PyPI";
+      dependencies = file_contents
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"))
+        .map((line) => {
+          const match = line.match(/^([A-Za-z0-9_.-]+)\s*==\s*([A-Za-z0-9_.-]+)/);
+          return match ? { name: match[1], version: match[2] } : null;
+        })
+        .filter((d): d is { name: string; version: string } => d !== null);
+    }
+
+    if (dependencies.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "No pinned dependencies with parseable versions were found in the file.",
+          },
+        ],
+      };
+    }
+
+    const response = await fetch(osvBatchApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        queries: dependencies.map((dep) => ({
+          version: dep.version,
+          package: { name: dep.name, ecosystem },
+        })),
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`OSV batch query failed: ${response.statusText}`);
+    }
+    const data = await response.json();
+    const results = dependencies.map((dep, i) => ({
+      package: dep.name,
+      version: dep.version,
+      ...summarizeOsvVulns(data.results?.[i]?.vulns),
+    }));
+    const vulnerableCount = results.filter((r) => r.vulnerable).length;
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            { file_type, ecosystem, scanned: results.length, vulnerable_packages: vulnerableCount, results },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

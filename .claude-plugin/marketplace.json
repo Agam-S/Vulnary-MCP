@@ -1,6 +1,6 @@
 {
   "name": "agam-s",
-  "description": "Plugins by Agam-S",
+  "description": "Claude Code plugins by Agam-S",
   "owner": {
     "name": "Agam-S"
   },
@@ -8,7 +8,7 @@
     {
       "name": "vulnary",
       "source": "./",
-      "description": "Look up CVEs and scan dependencies for known vulnerabilities."
+      "description": "Vulnerability intelligence from OSV.dev and NVD. Look up a CVE by ID for its description, severity, CVSS score and references; check a package version for known vulnerabilities across npm, PyPI, crates.io, Go, Maven, RubyGems and NuGet; batch-check a dependency list; or scan a package.json or requirements.txt and get the fixed-in version for every vulnerable package."
     }
   ]
 }

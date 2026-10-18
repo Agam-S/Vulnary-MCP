@@ -31,7 +31,7 @@ claude plugin install vulnary@agam-s
   "mcpServers": {
     "vulnary": {
       "command": "npx",
-      "args": ["-y", "vulnary-mcp"]
+      "args": ["-y", "vulnary-mcp@1.1.0"]
     }
   }
 }

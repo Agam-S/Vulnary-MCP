@@ -1,0 +1,14 @@
+{
+  "name": "agam-s",
+  "description": "Plugins by Agam-S",
+  "owner": {
+    "name": "Agam-S"
+  },
+  "plugins": [
+    {
+      "name": "vulnary",
+      "source": "./",
+      "description": "Look up CVEs and scan dependencies for known vulnerabilities."
+    }
+  ]
+}

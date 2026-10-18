@@ -1,0 +1,13 @@
+{
+  "name": "vulnary",
+  "displayName": "Vulnary",
+  "version": "1.1.0",
+  "description": "Look up CVEs (NVD) and scan packages and dependency files for known vulnerabilities (OSV.dev).",
+  "author": {
+    "name": "Agam-S"
+  },
+  "homepage": "https://github.com/Agam-S/Vulnary-MCP",
+  "repository": "https://github.com/Agam-S/Vulnary-MCP",
+  "license": "MIT",
+  "keywords": ["security", "vulnerabilities", "cve", "osv", "nvd", "dependencies"]
+}

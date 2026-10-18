@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vulnary": {
+      "command": "npx",
+      "args": ["-y", "vulnary-mcp"]
+    }
+  }
+}

@@ -1,14 +1,25 @@
 {
-  "name": "vulnary",
-  "version": "1.0.0",
+  "name": "vulnary-mcp",
+  "version": "1.1.0",
   "description": "vulnary is a mcp server that searches for cve's and vulnerabilities",
-  "license": "ISC",
+  "license": "MIT",
   "author": "Agam-S",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agam-S/Vulnary-MCP.git"
+  },
   "type": "commonjs",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "bin": {
+    "vulnary-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js"
   },
   "dependencies": {

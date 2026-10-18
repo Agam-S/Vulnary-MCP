@@ -15,6 +15,30 @@ Combines [OSV.dev](https://osv.dev) (open-source package vulnerabilities) and [N
 
 ## Installation
 
+### Claude Code plugin
+
+Installs the MCP server plus a `vuln-scan` skill that tells Claude when and how to use it:
+
+```bash
+claude plugin marketplace add Agam-S/Vulnary-MCP
+claude plugin install vulnary@agam-s
+```
+
+### Any MCP client (npm)
+
+```json
+{
+  "mcpServers": {
+    "vulnary": {
+      "command": "npx",
+      "args": ["-y", "vulnary-mcp"]
+    }
+  }
+}
+```
+
+### From source
+
 ```bash
 git clone https://github.com/Agam-S/Vulnary-MCP
 cd Vulnary-MCP

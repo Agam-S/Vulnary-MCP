@@ -37,30 +37,6 @@ claude plugin install vulnary@agam-s
 }
 ```
 
-### From source
-
-```bash
-git clone https://github.com/Agam-S/Vulnary-MCP
-cd Vulnary-MCP
-npm install
-npm run build
-```
-
-## Usage
-
-Add it to your MCP client's config, pointing at the built entry point:
-
-```json
-{
-  "mcpServers": {
-    "vulnary": {
-      "command": "node",
-      "args": ["/absolute/path/to/Vulnary-MCP/dist/index.js"]
-    }
-  }
-}
-```
-
 Restart the client and the tools below should appear.
 
 ## Tools
